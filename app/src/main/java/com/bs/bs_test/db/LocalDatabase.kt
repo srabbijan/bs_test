@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.bs.bs_test.model.Item
 
 //@Database(entities = [Item::class], version = 1)
-abstract class LocalDatabase :RoomDatabase(){
+//abstract class LocalDatabase :RoomDatabase(){
 
 //    abstract fun datadao():datadao
 //    companion object{
@@ -21,4 +21,4 @@ abstract class LocalDatabase :RoomDatabase(){
 //            return INSTANCE!!
 //        }
 //    }
-}
+//}

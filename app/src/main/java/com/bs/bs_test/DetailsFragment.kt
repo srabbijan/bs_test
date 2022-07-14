@@ -9,15 +9,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.bs.bs_test.api.API
+import com.bs.bs_test.api.APIHelper
 import com.bs.bs_test.model.SingleOwner
+import com.bs.bs_test.repository.DataRepository
+import com.bs.bs_test.repository.SingleOwnerRepository
 import com.bs.bs_test.utils.dateUtils
-import com.bs.bs_test.viewmodels.MainViewModel
+import com.bs.bs_test.viewmodels.MyViewModel
+import com.bs.bs_test.viewmodels.MyViewModelFactory
+import com.bs.bs_test.viewmodels.SingleOwnerViewModel
+import com.bs.bs_test.viewmodels.SingleOwnerViewModelFactory
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
 
 class DetailsFragment : Fragment() {
     lateinit var url:String
-
+    lateinit var myViewModel: SingleOwnerViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
             url = requireArguments().getString("url")!!
@@ -26,12 +33,17 @@ class DetailsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_details, container, false)
         initViewModel(view)
+
         return view
     }
 
     private fun initViewModel(view: View) {
-        val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        viewModel.getSingleOwnerObserver().observe(viewLifecycleOwner, Observer<SingleOwner> {
+        lateinit var dataRepo: SingleOwnerRepository
+        val apiServiecs = APIHelper.getInstance().create(API::class.java)
+        dataRepo = context?.let { SingleOwnerRepository(apiServiecs, it) }!!
+        myViewModel = ViewModelProvider(this, SingleOwnerViewModelFactory(dataRepo)).get(SingleOwnerViewModel::class.java)
+
+        myViewModel.getSingleOwnerObserver().observe(viewLifecycleOwner, Observer<SingleOwner> {
             if (it!=null){
                 val avatar = view.findViewById<CircleImageView>(R.id.avatar)
                 val tvname = view.findViewById<TextView>(R.id.tvname)
@@ -58,6 +70,6 @@ class DetailsFragment : Fragment() {
                 Toast.makeText(activity,"Error",Toast.LENGTH_SHORT).show()
             }
         })
-        viewModel.makeSingleOwnerApiCall(url)
+        myViewModel.makeSingleOwnerApiCall(url)
     }
 }

@@ -7,9 +7,11 @@ import java.util.concurrent.TimeUnit
 
 
 object APIHelper {
+
     var client = OkHttpClient.Builder()
         .connectTimeout(1000, TimeUnit.SECONDS)
         .readTimeout(1000, TimeUnit.SECONDS).build()
+
     val base_url = "https://api.github.com/"
     fun getInstance(): Retrofit {
         return Retrofit.Builder()

@@ -8,14 +8,16 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bs.bs_test.adapter.DataAdapter
+import com.bs.bs_test.api.API
+import com.bs.bs_test.api.APIHelper
 import com.bs.bs_test.model.DataModels
-import com.bs.bs_test.viewmodels.MainViewModel
+import com.bs.bs_test.repository.DataRepository
+import com.bs.bs_test.viewmodels.MyViewModel
+import com.bs.bs_test.viewmodels.MyViewModelFactory
 import com.google.android.material.snackbar.Snackbar
 
 
@@ -23,10 +25,18 @@ class HomeFragment : Fragment() {
     private var searchView: SearchView? = null
     private var searchBtn: ImageView? = null
     private lateinit var adapter : DataAdapter
+    lateinit var myViewModel: MyViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+//        val repository =(context as App).dataRepo
+        lateinit var dataRepo: DataRepository
+        val apiServiecs = APIHelper.getInstance().create(API::class.java)
+        dataRepo = context?.let { DataRepository(apiServiecs, it) }!!
+////        dataRepo = DataRepository(apiServiecs,localDatabase,applicationContext)
+        myViewModel = ViewModelProvider(this, MyViewModelFactory(dataRepo)).get(MyViewModel::class.java)
+
         initViewModel(view)
         initViewModel()
         return view
@@ -55,23 +65,35 @@ class HomeFragment : Fragment() {
                 ).show()
             } else {
                 searchView!!.setQuery("",false)
-                val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-                viewModel.makeApiCall(newText,"stargazers")
+                myViewModel.makeApiCall(newText,"stargazers")
             }
         }
     }
     private fun initViewModel(){
 
-    val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-    viewModel.getListObserver().observe(viewLifecycleOwner, Observer<DataModels> {
-        if (it!=null){
+//    val viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+//    viewModel.getListObserver().observe(viewLifecycleOwner, Observer<DataModels> {
+//        if (it!=null){
+//            adapter.setUpdatedData(it.items)
+//        }
+//        else{
+//            Toast.makeText(activity,"Error",Toast.LENGTH_SHORT)
+//        }
+//    })
+//    viewModel.makeApiCall("Android","stargazers")
+
+
+
+        myViewModel.quotes.observe(viewLifecycleOwner, Observer<DataModels> {
+                    if (it!=null){
             adapter.setUpdatedData(it.items)
         }
         else{
             Toast.makeText(activity,"Error",Toast.LENGTH_SHORT)
         }
-    })
-    viewModel.makeApiCall("Android","stargazers")
+        })
+        myViewModel.makeApiCall("Android","stargazers")
+
 }
 
 }
