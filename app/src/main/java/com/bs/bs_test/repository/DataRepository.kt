@@ -20,6 +20,7 @@ class DataRepository(
     suspend fun getData(q: String, sort: String) {
         if (networkUtils.isInternetAvailable(applicationContext)) {
             val result = api.getApiCall(q, sort)
+            Log.d("local1",result.toString())
             if (result != null) {
 //                localDatabase.datadao().addData(result)
                 liveDataModel.postValue(result)

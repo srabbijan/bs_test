@@ -16,5 +16,4 @@ data class Item(
         val updated_at: String,
         val watchers_count: Int,
         val owner: Owner
-
 )

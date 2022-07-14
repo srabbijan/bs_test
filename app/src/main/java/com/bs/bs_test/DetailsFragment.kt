@@ -1,6 +1,7 @@
 package com.bs.bs_test
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bs.bs_test.api.API
 import com.bs.bs_test.api.APIHelper
+import com.bs.bs_test.db.LocalDatabase
 import com.bs.bs_test.model.SingleOwner
 import com.bs.bs_test.repository.DataRepository
 import com.bs.bs_test.repository.SingleOwnerRepository
@@ -32,18 +34,22 @@ class DetailsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view =inflater.inflate(R.layout.fragment_details, container, false)
-        initViewModel(view)
 
+        lateinit var dataRepo: SingleOwnerRepository
+        val apiServiecs = APIHelper.getInstance().create(API::class.java)
+        val database = context?.let { LocalDatabase.getDatabase(it) }
+        dataRepo = database?.let { context?.let { it1 -> SingleOwnerRepository(apiServiecs, it, it1) } }!!
+
+        myViewModel = ViewModelProvider(this, SingleOwnerViewModelFactory(dataRepo)).get(SingleOwnerViewModel::class.java)
+        myViewModel.makeSingleOwnerApiCall(url)
+
+        initViewModel(view)
         return view
     }
 
     private fun initViewModel(view: View) {
-        lateinit var dataRepo: SingleOwnerRepository
-        val apiServiecs = APIHelper.getInstance().create(API::class.java)
-        dataRepo = context?.let { SingleOwnerRepository(apiServiecs, it) }!!
-        myViewModel = ViewModelProvider(this, SingleOwnerViewModelFactory(dataRepo)).get(SingleOwnerViewModel::class.java)
 
-        myViewModel.getSingleOwnerObserver().observe(viewLifecycleOwner, Observer<SingleOwner> {
+        myViewModel.ownerInfo.observe(viewLifecycleOwner, Observer<SingleOwner> {
             if (it!=null){
                 val avatar = view.findViewById<CircleImageView>(R.id.avatar)
                 val tvname = view.findViewById<TextView>(R.id.tvname)
@@ -56,6 +62,7 @@ class DetailsFragment : Fragment() {
                 val tvLastUpdated = view.findViewById<TextView>(R.id.tvLastUpdated)
                 val url = it.avatar_url
                 Picasso.get().load(url).into(avatar)
+
                 tvname.text = it.name
                 tvbio.text = it.bio
                 tvFollow.text = "${it.followers} followers . ${it.following} following"
@@ -67,9 +74,9 @@ class DetailsFragment : Fragment() {
                 tvLastUpdated.text= "Updated  ${updateTime}"
             }
             else{
-                Toast.makeText(activity,"Error",Toast.LENGTH_SHORT).show()
+               Toast.makeText(context,"No Data available",Toast.LENGTH_SHORT).show()
             }
         })
-        myViewModel.makeSingleOwnerApiCall(url)
+
     }
 }
